@@ -1,0 +1,23 @@
+services:
+  transmission:
+    container_name: Transmission
+    image: ghcr.io/linuxserver/transmission
+    mem_limit: 4g
+    cpu_shares: 768
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - 9091:9091
+      - 51413:51413/udp
+      - 51413:51413
+    volumes:
+      - /volume1/docker/transmission/data:/config:rw
+      - /volume1/docker/transmission/downloads:/downloads:rw
+      - /volume1/docker/transmission/watch:/watch:rw
+    environment:
+     USER: yudi
+     PASS: ****
+     TZ: Atlantic/Canary
+     PUID: 1000
+     PGID: 10
+    restart: on-failure:5

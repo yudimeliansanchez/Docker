@@ -1,0 +1,44 @@
+services:
+  mariadb:
+    image: mariadb:11.8-noble #LTS Long Term Support Until October 15, 2033.
+    container_name: Grimmory-DB
+    hostname: grimmory-db
+    security_opt:
+      - no-new-privileges:false
+    environment:
+      MARIADB_DATABASE: grimmory
+      MARIADB_USER: grimmoryuser
+      MARIADB_PASSWORD: grimmorypass
+      MARIADB_ROOT_PASSWORD: rootpass
+      TZ: Atlantic/Canary
+    volumes:
+      - /volume1/docker/grimmory/db:/var/lib/mysql:rw
+    restart: on-failure:5
+    
+  grimmory:
+    image: ghcr.io/grimmory-tools/grimmory:latest
+    container_name: Grimmory
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 6069 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    environment:
+      USER_ID: 999
+      GROUP_ID: 10
+      TZ: Atlantic/Canary
+      DATABASE_URL: jdbc:mariadb://mariadb:3306/grimmory #Or jdbc:mariadb://grimmory-db:3306/grimmory if you Experience Connection Issues.
+      DATABASE_USERNAME: grimmoryuser
+      DATABASE_PASSWORD: grimmorypass
+      BOOKLORE_PORT: 6069
+    depends_on:
+      mariadb:
+        condition: service_started
+    ports:
+      - 6069:6069
+    volumes:
+      - /volume1/docker/grimmory/data:/app/data:rw
+      - /volume1/docker/grimmory/books:/books:rw
+      - /volume1/docker/grimmory/bookdrop:/bookdrop:rw #Files inside the bookdrop folder are automatically detected.
+    restart: on-failure:10
